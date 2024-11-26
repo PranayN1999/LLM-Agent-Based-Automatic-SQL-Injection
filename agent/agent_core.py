@@ -4,7 +4,7 @@ from tools.table_tools import find_table_names
 from tools.column_tools import find_columns_for_table
 from tools.user_tools import find_users_in_table
 from tools.tom_tools import find_tom_details
-from configs.settings import OPENAI_API_KEY
+from config.settings import OPENAI_API_KEY
 
 
 def initialize_llm():
