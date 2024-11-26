@@ -1,5 +1,5 @@
-from langchain_community.chat_models import ChatOpenAI  # Updated import
-from langchain.agents import Tool, create_openai_functions_agent  # New agent constructor
+from langchain_openai import ChatOpenAI
+from langchain.agents import Tool, create_openai_functions_agent
 from tools.table_tools import find_table_names
 from tools.column_tools import find_columns_for_table
 from tools.user_tools import find_users_in_table
@@ -9,7 +9,7 @@ from config.settings import OPENAI_API_KEY
 
 def initialize_llm():
     """
-    Initializes the Language Model (LLM) using ChatOpenAI from langchain_community.
+    Initializes the Language Model (LLM) using ChatOpenAI from langchain_openai.
 
     Returns:
         ChatOpenAI: A GPT-powered model for handling agent reasoning and interactions.
@@ -61,7 +61,7 @@ def initialize_agent_tools():
     tools = define_tools()
 
     # Use the latest OpenAI Functions-based agent
-    agent = create_openai_functions_agent(llm=llm, tools=tools, verbose=True)
+    agent = create_openai_functions_agent(llm=llm, tools=tools)
     return agent
 
 
