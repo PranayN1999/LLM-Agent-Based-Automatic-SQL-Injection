@@ -4,10 +4,10 @@ from langchain.prompts.chat import ChatPromptTemplate
 from config.settings import OPENAI_API_KEY
 
 # Import utility functions
-from tools.table_tools import find_table_names
-from tools.column_tools import find_columns_for_table
-from tools.user_tools import find_users_in_table
-from tools.tom_tools import find_tom_details
+from tools.table_tools import find_table_names_tool
+from tools.column_tools import find_columns_for_table_tool
+from tools.user_tools import find_users_in_table_tool
+from tools.tom_tools import find_tom_details_tool
 
 
 def initialize_llm():
@@ -32,18 +32,18 @@ def define_tools():
     return [
         Tool(
             name="find_table_names",
-            func=find_table_names,
+            func=find_table_names_tool,
             description=(
                 "Purpose: Retrieves all table names from the database using blind SQL injection.\n"
                 "This tool handles the injection process and all interactions with the server.\n"
-                "Inputs: None.\n"
+                "Inputs: None (any provided input will be ignored).\n"
                 "Outputs: A list of all table names present in the database.\n"
                 "Usage: Use this tool when you need to discover which tables exist in the database."
             ),
         ),
         Tool(
             name="find_columns_for_table",
-            func=find_columns_for_table,
+            func=find_columns_for_table_tool,
             description=(
                 "Purpose: Retrieves all column names for a specified table using blind SQL injection.\n"
                 "This tool handles the injection process and all interactions with the server.\n"
@@ -54,7 +54,7 @@ def define_tools():
         ),
         Tool(
             name="find_users_in_table",
-            func=find_users_in_table,
+            func=find_users_in_table_tool,
             description=(
                 "Purpose: Extracts all values from a specified column in a given table using blind SQL injection.\n"
                 "This tool handles the injection process and all interactions with the server.\n"
@@ -67,7 +67,7 @@ def define_tools():
         ),
         Tool(
             name="find_tom_details",
-            func=find_tom_details,
+            func=find_tom_details_tool,
             description=(
                 "Purpose: Retrieves all column values for the user 'Tom' from a specified table using blind SQL injection.\n"
                 "This tool handles the injection process and all interactions with the server.\n"
