@@ -1,13 +1,16 @@
-from langchain.agents import tool
+from langchain.tools import tool
 from automation_scripts.find_all_tables import find_all_tables
-from config.settings import SESSION_COOKIE, SERVER_URL
 
 @tool
-def find_table_names() -> str:
+def find_table_names_tool() -> dict:
     """
     Finds all table names in the database using blind SQL injection.
+
     Returns:
-        str: Comma-separated table names.
+        dict: A dictionary containing the list of table names or an error message.
     """
-    table_names = find_all_tables(SESSION_COOKIE, SERVER_URL)
-    return ', '.join(table_names) if table_names else "No tables found."
+    try:
+        table_names = find_all_tables()
+        return {"table_names": table_names} if table_names else {"error": "No tables found in the database."}
+    except ValueError as e:
+        return {"error": str(e)}

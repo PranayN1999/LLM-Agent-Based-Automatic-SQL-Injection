@@ -1,16 +1,20 @@
-from langchain.agents import tool
+from langchain.tools import tool
 from automation_scripts.find_all_users import find_users
-from config.settings import SESSION_COOKIE, SERVER_URL
 
 @tool
-def find_users_in_table(table_name: str, userid_column: str) -> str:
+def find_users_in_table_tool(table_name: str, userid_column: str) -> dict:
     """
-    Extracts all user IDs from a specific table and column.
+    Extracts user IDs from a specific table and column.
+
     Args:
         table_name (str): The name of the table to query.
         userid_column (str): The column holding user IDs.
+
     Returns:
-        str: Comma-separated user IDs.
+        dict: A dictionary containing the list of user IDs or an error message.
     """
-    users = find_users(SESSION_COOKIE, SERVER_URL, table_name, userid_column)
-    return ', '.join(users) if users else f"No users found in table: {table_name}."
+    try:
+        users = find_users(table_name, userid_column)
+        return {"user_ids": users} if users else {"error": f"No users found in column {userid_column} of table {table_name}."}
+    except ValueError as e:
+        return {"error": str(e)}
