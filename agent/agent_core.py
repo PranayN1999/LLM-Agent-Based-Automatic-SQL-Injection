@@ -21,6 +21,7 @@ def initialize_llm():
         raise ValueError("OpenAI API key is missing. Set it in the .env file.")
     return ChatOpenAI(model="gpt-4o", temperature=0, openai_api_key=OPENAI_API_KEY)
 
+
 def define_tools():
     """
     Defines the tools for the agent, wrapping utility functions from the tools package.
@@ -32,24 +33,53 @@ def define_tools():
         Tool(
             name="find_table_names",
             func=find_table_names,
-            description="Identify all table names in the database."
+            description=(
+                "Purpose: Retrieves all table names from the database using blind SQL injection.\n"
+                "This tool handles the injection process and all interactions with the server.\n"
+                "Inputs: None.\n"
+                "Outputs: A list of all table names present in the database.\n"
+                "Usage: Use this tool when you need to discover which tables exist in the database."
+            ),
         ),
         Tool(
             name="find_columns_for_table",
             func=find_columns_for_table,
-            description="Retrieve all column names for a specific table."
+            description=(
+                "Purpose: Retrieves all column names for a specified table using blind SQL injection.\n"
+                "This tool handles the injection process and all interactions with the server.\n"
+                "Inputs: 'table_name' (string) — the name of the table.\n"
+                "Outputs: A list of column names for the given table.\n"
+                "Usage: Use this tool after identifying a table to find out what data it contains."
+            ),
         ),
         Tool(
             name="find_users_in_table",
             func=find_users_in_table,
-            description="Extract user IDs from a specific table."
+            description=(
+                "Purpose: Extracts all values from a specified column in a given table using blind SQL injection.\n"
+                "This tool handles the injection process and all interactions with the server.\n"
+                "Inputs:\n"
+                "- 'table_name' (string) — the name of the table.\n"
+                "- 'column_name' (string) — the name of the column from which to extract values.\n"
+                "Outputs: A list of values from the specified column.\n"
+                "Usage: Use this tool when you suspect a table and column may contain usernames or other relevant data."
+            ),
         ),
         Tool(
             name="find_tom_details",
             func=find_tom_details,
-            description="Extract details of the user 'Tom' from the database."
+            description=(
+                "Purpose: Retrieves all column values for the user 'Tom' from a specified table using blind SQL injection.\n"
+                "This tool handles the injection process and all interactions with the server.\n"
+                "Inputs:\n"
+                "- 'table_name' (string) — the name of the table where 'Tom' is located.\n"
+                "- 'column_list' (list of strings) — the columns from which to retrieve data.\n"
+                "Outputs: A dictionary of column names and their corresponding values for the user 'Tom'.\n"
+                "Usage: Use this tool after confirming that 'Tom' exists in a table to extract his details and find his password."
+            ),
         ),
     ]
+
 
 def initialize_agent_tools():
     """
@@ -67,25 +97,29 @@ def initialize_agent_tools():
     )
 
     # Define the prompt template with the required {agent_scratchpad}
-    prompt = ChatPromptTemplate.from_template(f"""
-    You are an intelligent SQL agent tasked with performing the following steps:
-    1. Find all table names.
-    2. Identify the table containing user data.
-    3. Extract user details from the database.
-    4. Retrieve the password for the user 'Tom'.
+    prompt = ChatPromptTemplate.from_template(
+        f"""
+      You are an intelligent security agent working on a WebGoat page that has two sections: a login page and a register page.
+      Your objective is to perform a blind SQL injection to retrieve the password for the user "Tom". You have no prior knowledge of the database schema, tables, columns, or data.
+      You discovered that there is a vulnerable field in the register page. Using this vulnerability, you have created Python scripts that can interact with the database.
+      These Python scripts are classified as tools, which you will use to find Tom's password.
 
-    For every step, follow this reasoning process:
-    - Thought: Explain what you're trying to do.
-    - Action: Choose the appropriate tool and specify input.
-    - Observation: Record the output from the tool.
-    - Repeat until the objective is complete or a conclusion is reached.
+      Tools available:
+      {tool_descriptions}
 
-    Tools available:
-    {tool_descriptions}
+      These tools are already configured with the server URL and session cookies, so you do not need to pass them as arguments.
+      Each tool has a specific purpose as mentioned in its description. Use these tools strategically to find the password of the user "Tom".
 
-    Current thoughts and actions:
-    {{agent_scratchpad}}
-    """)
+      For each step, follow this reasoning process:
+      - Thought: Explain what you're trying to do.
+      - Action: Choose the appropriate tool and specify the input.
+      - Observation: Record the output from the tool.
+      - Repeat this process until you find Tom's password or reach a conclusion.
+
+      Current thoughts and actions:
+      {{agent_scratchpad}}
+      """
+    )
 
     # Use the `create_openai_functions_agent` constructor
     agent = create_openai_functions_agent(
@@ -94,6 +128,7 @@ def initialize_agent_tools():
         prompt=prompt,
     )
     return agent
+
 
 def run_agent(objective: str):
     """
@@ -107,10 +142,11 @@ def run_agent(objective: str):
     """
     agent = initialize_agent_tools()
     print(f"Running agent with objective: {objective}")
-    
+
     result = agent.invoke({"input": objective, "intermediate_steps": []})
     print(f"Agent's Result: {result}")
     return result
+
 
 if __name__ == "__main__":
     objective = """
