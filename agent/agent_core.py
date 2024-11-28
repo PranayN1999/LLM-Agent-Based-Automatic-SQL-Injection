@@ -143,7 +143,7 @@ def initialize_agent_tools():
     return AgentExecutor.from_agent_and_tools(
         agent=agent,
         tools=tools,
-        verbose=True,
+        verbose=False,
         max_execution_time=3600,  # Set to 1 hour in seconds
         callbacks=[LongRunningToolHandler()],
     )
