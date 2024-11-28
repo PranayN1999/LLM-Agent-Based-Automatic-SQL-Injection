@@ -1,6 +1,7 @@
 from langchain_openai import ChatOpenAI
-from langchain.agents import Tool, create_openai_functions_agent
+from langchain.agents import Tool, AgentExecutor, create_openai_functions_agent
 from langchain.prompts.chat import ChatPromptTemplate
+from langchain.callbacks.base import BaseCallbackHandler
 from config.settings import OPENAI_API_KEY
 
 # Import utility functions
@@ -81,6 +82,16 @@ def define_tools():
     ]
 
 
+class LongRunningToolHandler(BaseCallbackHandler):
+    """Handles long-running tools with feedback to the user."""
+    def on_tool_start(self, serialized, input_str, **kwargs):
+        if serialized["name"] == "find_table_names":
+            print("Starting `find_table_names` tool. This may take some time...")
+
+    def on_tool_end(self, output, **kwargs):
+        print("`find_table_names` tool execution completed!")
+
+
 def initialize_agent_tools():
     """
     Initializes the agent using the new constructor for an OpenAI-based agent.
@@ -104,8 +115,8 @@ def initialize_agent_tools():
         You discovered that there is a vulnerable field in the register page. Using this vulnerability, you have created Python scripts that can interact with the database.
         These Python scripts are classified as tools, which you will use to find Tom's password.
 
-      Tools available:
-      {tool_descriptions}
+        Tools available:
+        {tool_descriptions}
 
       These tools are already configured with the server URL and session cookies, so you do not need to pass them as arguments.
       Each tool has a specific purpose as mentioned in its description. Use these tools strategically to find the password of the user "Tom".
@@ -116,9 +127,9 @@ def initialize_agent_tools():
       - Observation: Record the output from the tool.
       - Repeat this process until you find Tom's password or reach a conclusion.
 
-      Current thoughts and actions:
-      {{agent_scratchpad}}
-      """
+        Current thoughts and actions:
+        {{agent_scratchpad}}
+        """
     )
 
     # Use the `create_openai_functions_agent` constructor
@@ -127,7 +138,15 @@ def initialize_agent_tools():
         tools=tools,
         prompt=prompt,
     )
-    return agent
+
+    # Return AgentExecutor with an extended timeout
+    return AgentExecutor.from_agent_and_tools(
+        agent=agent,
+        tools=tools,
+        verbose=True,
+        max_execution_time=3600,  # Set to 1 hour in seconds
+        callbacks=[LongRunningToolHandler()],
+    )
 
 
 def run_agent(objective: str):
@@ -140,10 +159,10 @@ def run_agent(objective: str):
     Returns:
         str: The final output or result from the agent.
     """
-    agent = initialize_agent_tools()
+    agent_executor = initialize_agent_tools()
     print(f"Running agent with objective: {objective}")
 
-    result = agent.invoke({"input": objective, "intermediate_steps": []})
+    result = agent_executor.invoke({"input": objective})
     print(f"Agent's Result: {result}")
     return result
 
