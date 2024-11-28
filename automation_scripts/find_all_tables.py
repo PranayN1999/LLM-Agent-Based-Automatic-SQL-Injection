@@ -27,7 +27,7 @@ def find_all_tables():
         }
 
         try:
-            r = requests.put(f'{SERVER_URL}/SqlInjectionAdvanced/challenge', headers=headers, data=data, timeout=10)
+            r = requests.put(f'{SERVER_URL}/SqlInjectionAdvanced/challenge', headers=headers, data=data)
             response = json.loads(r.text)
             return "already exists" in response.get('feedback', '')
         except requests.RequestException as e:
@@ -54,6 +54,7 @@ def find_all_tables():
 
             if not char_found:
                 if table_name:
+                    print(table_number + 1, ". Table Found: ", table_name)
                     table_names.append(table_name)
                 break
 
