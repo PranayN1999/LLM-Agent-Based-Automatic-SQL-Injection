@@ -99,10 +99,10 @@ def initialize_agent_tools():
     # Define the prompt template with the required {agent_scratchpad}
     prompt = ChatPromptTemplate.from_template(
         f"""
-      You are an intelligent security agent working on a WebGoat page that has two sections: a login page and a register page.
-      Your objective is to perform a blind SQL injection to retrieve the password for the user "Tom". You have no prior knowledge of the database schema, tables, columns, or data.
-      You discovered that there is a vulnerable field in the register page. Using this vulnerability, you have created Python scripts that can interact with the database.
-      These Python scripts are classified as tools, which you will use to find Tom's password.
+        You are an intelligent security agent working on a WebGoat page that has two sections: a login page and a register page.
+        Your objective is to perform a blind SQL injection to retrieve the password for the user "Tom". You have no prior knowledge of the database schema, tables, columns, or data.
+        You discovered that there is a vulnerable field in the register page. Using this vulnerability, you have created Python scripts that can interact with the database.
+        These Python scripts are classified as tools, which you will use to find Tom's password.
 
       Tools available:
       {tool_descriptions}
