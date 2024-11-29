@@ -14,6 +14,7 @@ def find_users_in_table_tool(table_name: str, userid_column: str) -> dict:
         dict: A dictionary containing the list of user IDs or an error message.
     """
     try:
+        print("Invoking find user tool")
         users = find_users(table_name, userid_column)
         return {"user_ids": users} if users else {"error": f"No users found in column {userid_column} of table {table_name}."}
     except ValueError as e:

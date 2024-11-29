@@ -61,6 +61,7 @@ def find_columns_for_table(table_name):
 
         if column_name:
             columns.append(column_name)
+            print(f"Column found: {column_name}")
             column_number += 1
         else:
             break

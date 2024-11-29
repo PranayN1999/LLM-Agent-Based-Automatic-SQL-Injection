@@ -40,6 +40,7 @@ def find_users(table_name, userid_column):
             try:
                 response = json.loads(r.text)
             except:
+                print(f"Error: Could not decode JSON. Response: {r.text}")
                 return None
 
             if "already exists" not in response.get('feedback', ''):
@@ -58,6 +59,7 @@ def find_users(table_name, userid_column):
 
     while True:
         userid = extract_userid_for_row(row_offset, 1)
+        print("FOUND USER: ", userid)
         if userid:
             all_userids.append(userid)
             row_offset += 1
