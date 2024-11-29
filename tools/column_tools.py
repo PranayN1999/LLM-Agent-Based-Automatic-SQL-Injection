@@ -13,6 +13,7 @@ def find_columns_for_table_tool(table_name: str) -> dict:
         dict: A dictionary containing the list of column names or an error message.
     """
     try:
+        print("Invoking columns tool")
         columns = find_columns_for_table(table_name)
         return {"columns": columns} if columns else {"error": f"No columns found for table {table_name}."}
     except ValueError as e:

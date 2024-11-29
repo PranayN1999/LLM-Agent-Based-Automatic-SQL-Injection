@@ -3,6 +3,7 @@ from langchain.agents import Tool, AgentExecutor, create_openai_functions_agent
 from langchain.prompts.chat import ChatPromptTemplate
 from langchain.callbacks.base import BaseCallbackHandler
 from config.settings import OPENAI_API_KEY
+import time
 
 # Import utility functions
 from tools.table_tools import find_table_names_tool
@@ -82,14 +83,41 @@ def define_tools():
     ]
 
 
-class LongRunningToolHandler(BaseCallbackHandler):
-    """Handles long-running tools with feedback to the user."""
+class DiagnosticCallbackHandler(BaseCallbackHandler):
+    """Handles diagnostics and logs detailed information about the chain execution."""
+
+    def __init__(self):
+        self.iterations = 0
+        self.start_time = None
+
+    def on_chain_start(self, serialized, inputs, **kwargs):
+        self.start_time = time.time()
+        print(f"\n[Chain Start] Inputs: {inputs}\n")
+
     def on_tool_start(self, serialized, input_str, **kwargs):
-        if serialized["name"] == "find_table_names":
-            print("Starting `find_table_names` tool. This may take some time...")
+        tool_name = serialized.get('name', 'unknown')
+        print(f"\n[Tool Start] Invoking tool: {tool_name}")
+        print(f"Tool Input: {input_str}\n")
 
     def on_tool_end(self, output, **kwargs):
-        print("`find_table_names` tool execution completed!")
+        self.iterations += 1
+        elapsed_time = time.time() - self.start_time
+        print(f"\n[Tool End] Iteration: {self.iterations}")
+        print(f"Elapsed Time: {elapsed_time:.2f} seconds")
+        print(f"Tool Output: {output}\n")
+
+    def on_agent_finish(self, result, **kwargs):
+        elapsed_time = time.time() - self.start_time
+        print(f"\n[Agent Finish] Result: {result}")
+        print(f"Total Iterations: {self.iterations}")
+        print(f"Elapsed Time: {elapsed_time:.2f} seconds\n")
+        if "output" in result:
+            print("[Reason] Task likely completed successfully.")
+        else:
+            print("[Reason] Premature stopping detected. Check logs for errors.")
+
+    def on_chain_end(self, outputs, **kwargs):
+        print(f"\n[Chain End] Final Output: {outputs}")
 
 
 def initialize_agent_tools():
@@ -118,16 +146,13 @@ def initialize_agent_tools():
         Tools available:
         {tool_descriptions}
 
-      These tools are already configured with the server URL and session cookies, so you do not need to pass them as arguments.
-      Each tool has a specific purpose as mentioned in its description. Use these tools strategically to find the password of the user "Tom".
+        For each step, follow this reasoning process:
+        - Thought: Explain what you're trying to do.
+        - Action: Choose the appropriate tool and specify the input.
+        - Observation: Record the output from the tool.
+        - Repeat this process iteratively, updating your reasoning after each step until you find Tom's password.
 
-      For each step, follow this reasoning process:
-      - Thought: Explain what you're trying to do.
-      - Action: Choose the appropriate tool and specify the input.
-      - Observation: Record the output from the tool.
-      - Repeat this process until you find Tom's password or reach a conclusion.
-
-        Current thoughts and actions:
+        Current thought process:
         {{agent_scratchpad}}
         """
     )
@@ -139,13 +164,14 @@ def initialize_agent_tools():
         prompt=prompt,
     )
 
-    # Return AgentExecutor with an extended timeout
     return AgentExecutor.from_agent_and_tools(
         agent=agent,
         tools=tools,
-        verbose=False,
-        max_execution_time=3600,  # Set to 1 hour in seconds
-        callbacks=[LongRunningToolHandler()],
+        verbose=True,
+        max_execution_time=3600,
+        max_iterations=20,
+        early_stopping_method="generate",
+        callbacks=[DiagnosticCallbackHandler()],
     )
 
 

@@ -14,6 +14,7 @@ def find_tom_details_tool(table_name: str, columns: list) -> dict:
         dict: A dictionary with column names as keys and extracted values or an error message.
     """
     try:
+        print("Invoking find_tom_tool")
         tom_details = extract_tom_details(table_name, columns)
         return {"tom_details": tom_details} if tom_details else {"error": f"No details found for user 'Tom' in table {table_name}."}
     except ValueError as e:
